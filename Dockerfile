@@ -1,4 +1,4 @@
-FROM debian:wheezy
+FROM debian:stable
 MAINTAINER Heri Sim <heri16@gmail.com>
 
 ENV DEBIAN_FRONTEND noninteractive
