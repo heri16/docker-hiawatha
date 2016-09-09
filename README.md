@@ -10,13 +10,13 @@ Minimal Example Usage:
 
     docker build -t heri16/hiawatha .
     mkdir www
-    docker run -P --name web -v ./www:/var/www -v ./hosts.conf:/etc/hiawatha/hosts.conf heri16/hiawatha
+    docker run -P --name web -v ./www/:/var/www -v ./hosts.conf:/etc/hiawatha/hosts.conf heri16/hiawatha
 
 Full Example usage:
 
     docker build -t heri16/hiawatha .
     mkdir www log 
-    docker run -P --name web --link fpm:fpm -v ./www:/var/www -v ./log:/var/log/hiawatha -v ./hosts.conf:/etc/hiawatha/hosts.conf -v ./toolkits.conf:/etc/hiawatha/toolkits.conf ./bindings.conf:/etc/hiawatha/bindings.conf heri16/hiawatha
+    docker run -P --name web --link fpm:fpm -v ./www/:/var/www -v ./log:/var/log/hiawatha -v ./hosts.conf:/etc/hiawatha/hosts.conf -v ./toolkits.conf:/etc/hiawatha/toolkits.conf ./bindings.conf:/etc/hiawatha/bindings.conf heri16/hiawatha
 
 Example hosts.conf:
 
@@ -27,8 +27,12 @@ Example hosts.conf:
         AccessLogfile = /var/www/example.com/log/access.log
         ErrorLogfile = /var/www/example.com/log/error.log
         TimeForCGI = 180
-        UseFastCGI = PHP5
+        UseFastCGI = FPM
         UseToolkit = drupal
+        PreventCSRF = prevent
+        PreventSQLi = prevent
+        PreventXSS = prevent
+        RequireTLS = yes, 2678400
     }
 
 Example toolkits.conf:
@@ -43,15 +47,18 @@ Example toolkits.conf:
 
 Example bindings.conf:
 
+    MinTLSversion = 1.2
     Binding {
         Port = 443
         TLScertFile = ssl/hiawatha.pem
         MaxRequestSize = 2048
         TimeForRequest = 30
-    }  
+    }
 
 The above .conf include files ensure your hiawatha image will upgrade seamlessly when new versions of hiawatha is release.
 Some basic configuration changes have also been made to *hiawatha.conf* to enhance security.
 
 However, you can fully override /etc/hiawatha/hiawatha.conf if required:
-docker run -v ./hiawatha.conf:/etc/hiawatha/hiawatha.conf
+    docker run -v ./hiawatha.conf:/etc/hiawatha/hiawatha.conf
+
+**[Hiawatha Manpages](https://www.hiawatha-webserver.org/manpages/hiawatha/#index)**
