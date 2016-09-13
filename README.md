@@ -1,8 +1,8 @@
-# Hiawatha on Debian Wheezy
+# Hiawatha Docker Container
 
 [![](https://images.microbadger.com/badges/image/heri16/hiawatha.svg)](https://microbadger.com/images/heri16/hiawatha "Get your own image badge on microbadger.com")
 
-This is a Docker container that provides the **[Hiawatha](http://www.hiawatha-webserver.org)** web server.
+This is a lightweight Docker container that provides the **[Hiawatha](http://www.hiawatha-webserver.org)** web server.
 
 Usage is straightforward and relies only on a data volume mounted at */var/www*. There is a second volume for logging at */var/log/hiawatha*.
 
