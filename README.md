@@ -1,5 +1,6 @@
 # Hiawatha Docker Container
 
+[![](https://img.shields.io/docker/automated/heri16/hiawatha.svg)]
 [![](https://images.microbadger.com/badges/image/heri16/hiawatha.svg)](https://microbadger.com/images/heri16/hiawatha "Get your own image badge on microbadger.com")
 
 This is a lightweight Docker container that provides the **[Hiawatha](http://www.hiawatha-webserver.org)** web server.
@@ -62,12 +63,16 @@ The above .conf include files ensure your hiawatha image will upgrade seamlessly
 Some basic configuration changes have also been made to *hiawatha.conf* to enhance security.
 
 However, you can fully override /etc/hiawatha/hiawatha.conf if required:
+
     docker run -v ./hiawatha.conf:/etc/hiawatha/hiawatha.conf
 
+See the complete reference for hiawatha.conf here:
 **[Hiawatha Manpages](https://www.hiawatha-webserver.org/manpages/hiawatha/#index)**
 
 
 ## Docker compose
+
+Using docker compose is optional, but the recommended way for painless multi-container Docker services.  
 
 ### Example docker-compose.yml:
 
