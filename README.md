@@ -1,6 +1,6 @@
 # Hiawatha Docker Container
 
-[![](https://img.shields.io/docker/automated/heri16/hiawatha.svg)]
+[![](https://img.shields.io/docker/automated/heri16/hiawatha.svg)](https://hub.docker.com/r/heri16/hiawatha/ "Docker Hub")
 [![](https://images.microbadger.com/badges/image/heri16/hiawatha.svg)](https://microbadger.com/images/heri16/hiawatha "Get your own image badge on microbadger.com")
 
 This is a lightweight Docker container that provides the **[Hiawatha](http://www.hiawatha-webserver.org)** web server.
