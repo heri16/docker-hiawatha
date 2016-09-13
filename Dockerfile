@@ -14,7 +14,7 @@ RUN sed -i -e"s/^\#\(\s*\(BanOnGarbage\|BanOnMaxPerIP\|BanOnMaxReqSize\|KickOnBa
     echo "# Replace this config file via Docker's --volumes-from or -v ./hosts.conf:/etc/hiawatha/hosts.conf" > /etc/hiawatha/hosts.conf && \
     sed -i -e"s/^\#VirtualHost {$/Include \/etc\/hiawatha\/hosts.conf\n#VirtualHost {/" /etc/hiawatha/hiawatha.conf
 
-EXPOSE 80 443
+EXPOSE 80/tcp 443/tcp
 
 #VOLUME ["/etc/hiawatha", "/var/log/hiawatha", "/var/www/hiawatha"]
 

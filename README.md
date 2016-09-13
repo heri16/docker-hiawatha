@@ -1,24 +1,27 @@
 # Hiawatha on Debian Wheezy
 
+[![](https://images.microbadger.com/badges/image/heri16/hiawatha.svg)](https://microbadger.com/images/heri16/hiawatha "Get your own image badge on microbadger.com")
+
 This is a Docker container that provides the **[Hiawatha](http://www.hiawatha-webserver.org)** web server.
 
 Usage is straightforward and relies only on a data volume mounted at */var/www*. There is a second volume for logging at */var/log/hiawatha*.
 
-PHP is supported but is not built-in to the container. The startup script `run.sh` will make provision for linking to a PHP-FPM instance listening on port 9000. If this is not linked PHP scripts will return a `503` error.
+PHP is supported but is not built-in to the container. The startup script `run.sh` will make provision for linking to a PHP-FPM instance listening on port 9000. If this is not linked PHP scripts will not be intepreted.
 
-Minimal Example Usage:
+### Minimal Example Usage:
 
     docker build -t heri16/hiawatha .
     mkdir www
     docker run -P --name web -v ./www/:/var/www -v ./hosts.conf:/etc/hiawatha/hosts.conf heri16/hiawatha
 
-Full Example usage:
+### Full Example usage:
 
     docker build -t heri16/hiawatha .
-    mkdir www log 
-    docker run -P --name web --link fpm:fpm -v ./www/:/var/www -v ./log:/var/log/hiawatha -v ./hosts.conf:/etc/hiawatha/hosts.conf -v ./toolkits.conf:/etc/hiawatha/toolkits.conf ./bindings.conf:/etc/hiawatha/bindings.conf heri16/hiawatha
+    mkdir www log
+    docker run -d --name php-fpm php:fpm-alpine
+    docker run -P --name web --link php-fpm:php -v ./www/:/var/www -v ./log:/var/log/hiawatha -v ./hosts.conf:/etc/hiawatha/hosts.conf -v ./toolkits.conf:/etc/hiawatha/toolkits.conf ./bindings.conf:/etc/hiawatha/bindings.conf heri16/hiawatha
 
-Example hosts.conf:
+### Example hosts.conf:
 
     VirtualHost {
         Hostname = example.com
@@ -27,7 +30,7 @@ Example hosts.conf:
         AccessLogfile = /var/www/example.com/log/access.log
         ErrorLogfile = /var/www/example.com/log/error.log
         TimeForCGI = 180
-        UseFastCGI = FPM
+        UseFastCGI = PHP
         UseToolkit = drupal
         PreventCSRF = prevent
         PreventSQLi = prevent
@@ -35,7 +38,7 @@ Example hosts.conf:
         RequireTLS = yes, 2678400
     }
 
-Example toolkits.conf:
+### Example toolkits.conf:
 
     UrlToolkit {
         ToolkitID = drupal
@@ -45,7 +48,7 @@ Example toolkits.conf:
         Match /(.*) Rewrite /index.php?q=$1
     }
 
-Example bindings.conf:
+### Example bindings.conf:
 
     MinTLSversion = 1.2
     Binding {
@@ -62,3 +65,29 @@ However, you can fully override /etc/hiawatha/hiawatha.conf if required:
     docker run -v ./hiawatha.conf:/etc/hiawatha/hiawatha.conf
 
 **[Hiawatha Manpages](https://www.hiawatha-webserver.org/manpages/hiawatha/#index)**
+
+
+## Docker compose
+
+### Example docker-compose.yml:
+
+    version: '2'
+    services:
+      php_fpm:
+        build: ./php
+        expose:
+         - "9000"
+        volumes:
+          - /var/www/:/var/www:ro
+      hiawatha_web:
+        image: heri16/hiawatha
+        links:
+          - php_fpm:php
+        environment:
+          - PHP_HOST=php
+          - PHP_FPM_PORT=9000
+        ports:
+          - "80:80"
+          - "443:443"
+        volumes:
+          - /home/centos/piler/hosts.conf:/etc/hiawatha/hosts.conf:ro,Z
