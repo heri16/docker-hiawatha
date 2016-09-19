@@ -22,7 +22,7 @@ PHP is supported but is not built-in to the container. The startup script `run.s
     docker run -d --name php-fpm php:fpm-alpine
     docker run -P --name web --link php-fpm:php -v ./www/:/var/www -v ./log:/var/log/hiawatha -v ./hosts.conf:/etc/hiawatha/hosts.conf -v ./toolkits.conf:/etc/hiawatha/toolkits.conf ./bindings.conf:/etc/hiawatha/bindings.conf heri16/hiawatha
 
-### Example hosts.conf:
+### Example hosts.conf (Define multiple virtualhosts if required):
 
     VirtualHost {
         Hostname = example.com
@@ -32,14 +32,15 @@ PHP is supported but is not built-in to the container. The startup script `run.s
         ErrorLogfile = /var/www/example.com/log/error.log
         TimeForCGI = 180
         UseFastCGI = PHP
-        UseToolkit = drupal
         PreventCSRF = prevent
         PreventSQLi = prevent
         PreventXSS = prevent
-        RequireTLS = yes, 2678400
+        #RequireTLS = yes, 2678400
+        #TLScertFile = /etc/letsencrypt/live/example.com/fullchainwithkey.pem
+        #UseToolkit = drupal
     }
 
-### Example toolkits.conf:
+### Example toolkits.conf ([Rewrite rules](https://www.hiawatha-webserver.org/howto/url_rewrite_rules) for drupal):
 
     UrlToolkit {
         ToolkitID = drupal
@@ -49,20 +50,23 @@ PHP is supported but is not built-in to the container. The startup script `run.s
         Match /(.*) Rewrite /index.php?q=$1
     }
 
-### Example bindings.conf:
+### Example bindings.conf (Activate HTTPS with default self-signed cert):
 
     MinTLSversion = 1.2
+    DHsize = 4096
     Binding {
         Port = 443
-        TLScertFile = ssl/hiawatha.pem
+        # For convenience, /etc/hiawatha/tls/selfcertwithkey.pem is generated locally
+        # by run.sh when the docker container is first started.
+        TLScertFile = tls/selfcertwithkey.pem
         MaxRequestSize = 2048
-        TimeForRequest = 30
+        TimeForRequest = 5, 30
     }
 
-The above .conf include files ensure your hiawatha image will upgrade seamlessly when new versions of hiawatha is release.
+Use the above .conf files to ensure that your hiawatha image will upgrade seamlessly (when new versions of hiawatha is released).
 Some basic configuration changes have also been made to *hiawatha.conf* to enhance security.
 
-However, you can fully override /etc/hiawatha/hiawatha.conf if required:
+However, you may also fully override /etc/hiawatha/hiawatha.conf if required:
 
     docker run -v ./hiawatha.conf:/etc/hiawatha/hiawatha.conf
 
@@ -79,13 +83,14 @@ Using docker compose is optional, but the recommended way for painless multi-con
     version: '2'
     services:
       php_fpm:
-        build: ./php
+        image: php:fpm-alpine
         expose:
          - "9000"
         volumes:
-          - /var/www/:/var/www:ro
+          - ./www/example.com/html/:/var/www/example.com/html:ro
+          - ./www/example.com/log/:/var/www/example.com/log:rw
       hiawatha_web:
-        image: heri16/hiawatha
+        image: heri16/hiawatha:latest
         links:
           - php_fpm:php
         environment:
@@ -95,4 +100,8 @@ Using docker compose is optional, but the recommended way for painless multi-con
           - "80:80"
           - "443:443"
         volumes:
-          - /home/centos/piler/hosts.conf:/etc/hiawatha/hosts.conf:ro,Z
+          - ./www/example.com/html/:/var/www/example.com/html:ro
+          - ./www/example.com/log/:/var/www/example.com/log:rw
+          - ./hiawatha/hosts.conf:/etc/hiawatha/hosts.conf:ro,Z
+          - ./hiawatha/bindings.conf:/etc/hiawatha/bindings.conf:ro,Z
+          - ./hiawatha/tls/example.com.pem:/etc/hiawatha/tls/example.com.pem:ro,Z
