@@ -9,20 +9,41 @@ Usage is straightforward and relies only on a data volume mounted at */var/www*.
 
 PHP is supported but is not built-in to the container. The startup script `run.sh` will make provision for linking to a PHP-FPM instance listening on port 9000. If this is not linked PHP scripts will not be intepreted.
 
+
 ### Minimal Example Usage:
 
     docker build -t heri16/hiawatha .
     mkdir www
     docker run -P --name web -v ./www/:/var/www -v ./hosts.conf:/etc/hiawatha/hosts.conf heri16/hiawatha
 
+
 ### Full Example usage:
 
     docker build -t heri16/hiawatha .
     mkdir www log
     docker run -d --name php-fpm php:fpm-alpine
-    docker run -P --name web --link php-fpm:php -v ./www/:/var/www -v ./log:/var/log/hiawatha -v ./hosts.conf:/etc/hiawatha/hosts.conf -v ./toolkits.conf:/etc/hiawatha/toolkits.conf ./bindings.conf:/etc/hiawatha/bindings.conf heri16/hiawatha
+    docker run -P --name web --link php-fpm:php \
+      -v ./www/:/var/www \
+      -v ./log:/var/log/hiawatha \
+      -v ./hosts.conf:/etc/hiawatha/hosts.conf \
+      -v ./toolkits.conf:/etc/hiawatha/toolkits.conf \
+      -v ./bindings.conf:/etc/hiawatha/bindings.conf heri16/hiawatha
 
-### Example hosts.conf (Define multiple virtualhosts if required):
+
+## Configuration
+
+The goal here is to provide the most secure basic Hiawatha web server supporting multiple virtual hosts through shared docker volumes.
+
+Use the example .conf files below to ensure that your hiawatha image will upgrade seamlessly and remain secure (when new versions of hiawatha is released).
+
+However, you may also fully override [hiawatha.conf](https://www.hiawatha-webserver.org/manpages/hiawatha/#index) if desired:
+
+    docker run -v ./hiawatha.conf:/etc/hiawatha/hiawatha.conf
+
+
+### Example hosts.conf:
+
+Define multiple virtualhosts (if required).
 
     VirtualHost {
         Hostname = example.com
@@ -40,7 +61,10 @@ PHP is supported but is not built-in to the container. The startup script `run.s
         #UseToolkit = drupal
     }
 
-### Example toolkits.conf ([Rewrite rules](https://www.hiawatha-webserver.org/howto/url_rewrite_rules) for drupal):
+
+### Example toolkits.conf :
+
+[Rewrite rules](https://www.hiawatha-webserver.org/howto/url_rewrite_rules) for drupal.
 
     UrlToolkit {
         ToolkitID = drupal
@@ -50,33 +74,24 @@ PHP is supported but is not built-in to the container. The startup script `run.s
         Match /(.*) Rewrite /index.php?q=$1
     }
 
-### Example bindings.conf (Activate HTTPS with default self-signed cert):
+
+### Example bindings.conf :
+
+Activate HTTPS with default self-signed cert. (For convenience, /etc/hiawatha/tls/selfcertwithkey.pem is generated locally, by run.sh when the docker container is first started.)
 
     MinTLSversion = 1.2
     DHsize = 4096
     Binding {
         Port = 443
-        # For convenience, /etc/hiawatha/tls/selfcertwithkey.pem is generated locally
-        # by run.sh when the docker container is first started.
         TLScertFile = tls/selfcertwithkey.pem
         MaxRequestSize = 2048
         TimeForRequest = 5, 30
     }
 
-Use the above .conf files to ensure that your hiawatha image will upgrade seamlessly (when new versions of hiawatha is released).
-Some basic configuration changes have also been made to *hiawatha.conf* to enhance security.
-
-However, you may also fully override /etc/hiawatha/hiawatha.conf if required:
-
-    docker run -v ./hiawatha.conf:/etc/hiawatha/hiawatha.conf
-
-See the complete reference for hiawatha.conf here:
-**[Hiawatha Manpages](https://www.hiawatha-webserver.org/manpages/hiawatha/#index)**
-
 
 ## Docker compose
 
-Using docker compose is optional, but the recommended way for painless multi-container Docker services.  
+Using docker compose is optional, but it is the recommended way for painless multi-container Docker services.  
 
 ### Example docker-compose.yml:
 
